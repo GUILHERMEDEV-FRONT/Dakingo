@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Public profile details of a registered user",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string", "description": "The user's display name" },
+        "photoURL": { "type": "string", "description": "The user's profile picture URL" },
+        "joinedAt": { "type": "string", "description": "ISO date-time when the user joined" }
+      },
+      "required": ["displayName", "photoURL", "joinedAt"]
+    },
+    "UserPrivateProfile": {
+      "title": "UserPrivateProfile",
+      "description": "Private, PII-protected profile details of a registered user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "The registered email address" },
+        "address": { "type": "string", "description": "Shipping or delivery address" },
+        "phone": { "type": "string", "description": "Contact phone number" }
+      },
+      "required": ["email"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "Birthday or anniversary cake reminder",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the person to celebrate" },
+        "date": { "type": "string", "description": "Date of the event (YYYY-MM-DD)" },
+        "relationship": { "type": "string", "description": "Relationship (e.g., Mom, Friend, Partner)" },
+        "createdAt": { "type": "string", "description": "Timestamp of the reminder creation" },
+        "userId": { "type": "string", "description": "Owner user ID of this reminder" }
+      },
+      "required": ["name", "date", "relationship", "createdAt", "userId"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Bakery order details",
+      "type": "object",
+      "properties": {
+        "itemsJson": { "type": "string", "description": "JSON representation of the ordered items for structure safety" },
+        "totalAmount": { "type": "integer", "description": "Total purchase cost in Rupees" },
+        "status": { "type": "string", "description": "Status of the order" },
+        "createdAt": { "type": "string", "description": "Timestamp of the purchase" },
+        "userId": { "type": "string", "description": "User who ordered the cakes" },
+        "deliveryAddress": { "type": "string", "description": "Address where the cake will be delivered" }
+      },
+      "required": ["itemsJson", "totalAmount", "status", "createdAt", "userId", "deliveryAddress"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserPublicProfile",
+      "description": "Public user profiles"
+    },
+    "/users/{userId}/private/info": {
+      "schema": "UserPrivateProfile",
+      "description": "Private, PII-protected profile details"
+    },
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": "Reminder",
+      "description": "User birthday and anniversary lists"
+    },
+    "/users/{userId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Purchase transaction histories"
+    }
+  }
+}

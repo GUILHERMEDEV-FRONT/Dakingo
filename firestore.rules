@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Catch-all Default-Deny Gate
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Safety and Identity Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. User Public Profile Helpers and Rules
+    function isValidUserPublicProfile(data) {
+      return data.keys().hasAll(['displayName', 'photoURL', 'joinedAt']) 
+        && data.keys().size() == 3
+        && data.displayName is string 
+        && data.displayName.size() >= 1 
+        && data.displayName.size() <= 150
+        && data.photoURL is string
+        && data.photoURL.size() <= 2048
+        && data.joinedAt is string;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.displayName != null; // Query enforcer list rule
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserPublicProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserPublicProfile(incoming()) && incoming().joinedAt == existing().joinedAt;
+
+      // 4. Private Profile (PII Isolation Strategy)
+      function isValidUserPrivateProfile(data) {
+        return data.keys().hasAll(['email'])
+          && data.email is string
+          && data.email.size() >= 3
+          && data.email.size() <= 256
+          && (!('address' in data) || (data.address is string && data.address.size() <= 500))
+          && (!('phone' in data) || (data.phone is string && data.phone.size() <= 30));
+      }
+
+      match /private/info {
+        allow get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidUserPrivateProfile(incoming());
+        allow update: if isOwner(userId) && isValidUserPrivateProfile(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['address', 'phone', 'email'])
+        );
+      }
+
+      // 5. Reminders Collection (The Magical Ticket Feature)
+      function isValidReminder(data) {
+        return data.keys().hasAll(['name', 'date', 'relationship', 'createdAt', 'userId'])
+          && data.keys().size() == 5
+          && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+          && data.date is string && data.date.size() == 10
+          && data.relationship is string && data.relationship.size() >= 1 && data.relationship.size() <= 50
+          && data.userId is string && data.userId == request.auth.uid
+          && data.createdAt is string;
+      }
+
+      match /reminders/{reminderId} {
+        allow get: if isOwner(userId) && isValidId(reminderId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(reminderId) && isValidReminder(incoming());
+        allow update: if isOwner(userId) && isValidId(reminderId) && isValidReminder(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'relationship'])
+        );
+        allow delete: if isOwner(userId) && isValidId(reminderId);
+      }
+
+      // 6. Orders Collection
+      function isValidOrder(data) {
+        return data.keys().hasAll(['itemsJson', 'totalAmount', 'status', 'createdAt', 'userId', 'deliveryAddress'])
+          && data.keys().size() == 6
+          && data.itemsJson is string && data.itemsJson.size() <= 20000
+          && data.totalAmount is int && data.totalAmount >= 0
+          && data.status is string && data.status.size() <= 50
+          && data.userId is string && data.userId == request.auth.uid
+          && data.deliveryAddress is string && data.deliveryAddress.size() <= 500
+          && data.createdAt is string;
+      }
+
+      match /orders/{orderId} {
+        allow get: if isOwner(userId) && isValidId(orderId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(orderId) && isValidOrder(incoming()) && incoming().status == 'pending';
+        allow update: if isOwner(userId) && isValidId(orderId) && isValidOrder(incoming()) && (
+          // Action: Cancel Order
+          (existing().status == 'pending' && incoming().status == 'cancelled' && incoming().diff(existing()).affectedKeys().hasOnly(['status']))
+        );
+      }
+    }
+  }
+}

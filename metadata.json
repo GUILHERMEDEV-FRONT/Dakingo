@@ -1,0 +1,6 @@
+{
+  "name": "Dakingo",
+  "description": "An elegant, premium online bakery and custom cake shop featuring gourmet desserts, interactive menu filters, and custom birthday/anniversary reminders.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
