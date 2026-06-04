@@ -121,28 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Nav Categories */}
-      <nav className="border-t border-stone-100 bg-brand-secondary/40">
-        <div className="mx-auto flex max-w-7xl items-center justify-start gap-6 overflow-x-auto px-4 py-3 scrollbar-none sm:px-6 lg:justify-center lg:px-8">
-          {[
-            'Cakes',
-            'Theme Cakes',
-            'Desserts',
-            'Birthday',
-            'Hampers',
-            'Anniversary',
-            'Occasional',
-            'Occasions',
-          ].map((cat) => (
-            <a
-              key={cat}
-              href="#menu"
-              className="whitespace-nowrap text-xs font-semibold text-stone-600 hover:text-brand-primary transition-colors"
-            >
-              {cat}
-            </a>
-          ))}
-        </div>
-      </nav>
+     
     </header>
   );
 };

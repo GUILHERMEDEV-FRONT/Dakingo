@@ -12,7 +12,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onExploreClick }) => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Main curved banner wrapper */}
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-primary via-[#9B2129] to-[#6E1218] p-8 text-white shadow-xl md:p-14 lg:p-16">
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-primary via-[#e72431] to-[#6E1218] p-8 text-white shadow-xl md:p-14 lg:p-16">
           
           {/* Subtle gold decoration background */}
           <div className="absolute top-0 right-0 h-64 w-64 -translate-y-8 translate-x-8 rounded-full bg-brand-accent/10 blur-3xl" />
